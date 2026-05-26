@@ -1,24 +1,18 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-PyInstaller spec for MoonScan.
+PyInstaller spec — builds a single MoonScan.exe with everything bundled
+inside (Python runtime, PySide6, the EVE static database, all of it).
 
-Builds a one-folder distribution. We deliberately use --onedir rather than
---onefile because:
-  1. Single-exe builds with PyInstaller frequently trip Windows Defender
-     and other antivirus heuristics, which would hurt alliance distribution.
-  2. The 30 MB eve_static.db sits next to the exe and is easier to update
-     in place than re-extracting a one-file bundle each launch.
-  3. Startup is faster (no temp extraction).
+The .exe extracts itself to a temp folder on launch (so first start takes
+a few seconds), then runs. User data still goes to %APPDATA%\\MoonScan so
+nothing is lost when the temp dir is cleaned up.
 
-Build with:
+Build via build.bat (double-click) or:
     pyinstaller moonscan.spec
-The output ends up in dist/MoonScan/. Zip that folder for distribution.
 """
-
 from pathlib import Path
 
 block_cipher = None
-
 PROJECT = Path('.').resolve()
 
 a = Analysis(
@@ -26,7 +20,6 @@ a = Analysis(
     pathex=[str(PROJECT)],
     binaries=[],
     datas=[
-        # (source, target_dir_in_bundle)
         (str(PROJECT / 'data' / 'eve_static.db'), 'data'),
     ],
     hiddenimports=[],
@@ -34,7 +27,7 @@ a = Analysis(
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
-        # Trim unused Qt modules. Comment any back in if you hit ImportError.
+        # Trim unused Qt modules to keep the bundle smaller
         'PySide6.QtBluetooth',
         'PySide6.QtMultimedia',
         'PySide6.QtMultimediaWidgets',
@@ -66,32 +59,25 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
+# Single-file build: everything packed into one .exe
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
     [],
-    exclude_binaries=True,
     name='MoonScan',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=False,           # UPX often triggers AV heuristics; not worth it
+    upx=False,           # UPX triggers more AV flags than it saves in size
+    runtime_tmpdir=None, # extract to OS default temp folder
     console=False,       # GUI app — no console window on Windows
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    # icon='icon.ico',   # add an .ico file at the project root to set the icon
-)
-
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=False,
-    upx=False,
-    upx_exclude=[],
-    name='MoonScan',
+    # icon='icon.ico',   # drop an .ico in the project root if you want one
 )

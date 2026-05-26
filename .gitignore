@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# PyInstaller output
+build/
+dist/
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Local user data (should never end up here, but just in case)
+user.db
+*.db-journal
+
+# SDE source files (huge, regeneratable from CCP)
+*.jsonl
+mapMoons.zip
+mapMoons.z*
+evemap.zip

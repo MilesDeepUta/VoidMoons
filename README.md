@@ -57,18 +57,17 @@ the byte-identical-export guarantees.
 
 ## Building a standalone .exe
 
+**Easy way (Windows):** double-click `build.bat`. It installs the dependencies, runs PyInstaller, and produces `dist\MoonScan.exe` — a single file you can share. First build takes 1-3 minutes; subsequent builds are faster.
+
+**Manual way:**
 ```
 pip install pyinstaller
 python build_exe.py
 ```
 
-The output lands in `dist/MoonScan/`. Zip that folder and ship it. End-users
-double-click `MoonScan.exe` inside the unzipped folder.
+The output is a single `dist\MoonScan.exe` with everything (Python runtime, PySide6, the SDE database) packed inside. Share this one file — recipients double-click to run.
 
-The spec uses `--onedir` (not `--onefile`) on purpose: single-exe PyInstaller
-builds frequently trip Windows Defender heuristics, which would be a problem
-for alliance distribution. The trade-off is a folder of files instead of one
-exe — minor inconvenience, much fewer false positives.
+The spec uses `--onefile` so there's just one .exe to distribute. The trade-offs: first launch takes a few seconds to extract internals to a temp folder, and antivirus software occasionally flags PyInstaller single-file builds. If a recipient sees a Windows SmartScreen warning ("Windows protected your PC"), they click "More info" → "Run anyway" — this is unavoidable without a code-signing certificate.
 
 User data (`user.db`, settings) lives in:
 - Windows: `%APPDATA%\MoonScan\`
