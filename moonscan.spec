@@ -16,7 +16,7 @@ block_cipher = None
 PROJECT = Path('.').resolve()
 
 a = Analysis(
-    ['moonscan/__main__.py'],
+    ['moonscan_launcher.py'],
     pathex=[str(PROJECT)],
     binaries=[],
     datas=[
