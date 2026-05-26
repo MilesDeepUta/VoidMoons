@@ -16,7 +16,7 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (
-    QLabel, QMainWindow, QMessageBox, QStackedWidget, QStatusBar, QToolBar,
+    QLabel, QMainWindow, QStackedWidget, QStatusBar, QToolBar,
     QVBoxLayout, QWidget,
 )
 
@@ -315,15 +315,19 @@ class MainWindow(QMainWindow):
         self._open_paste_dialog(prefill=data)
 
     def _show_ingest_result(self, stats: IngestStats) -> None:
-        msg = (
-            f"Saved {stats.new_scans} new scan(s)\n"
-            f"Updated {stats.rescans} existing scan(s)\n"
-            f"In assignment: {stats.in_assignment}\n"
-            f"Out of assignment: {stats.out_of_assignment}"
-        )
+        """Show a transient message in the status bar — no modal popup, no
+        Windows 'information' sound. Auto-clears after 5 seconds."""
+        parts: list[str] = []
+        if stats.new_scans:
+            parts.append(f"+{stats.new_scans} new")
+        if stats.rescans:
+            parts.append(f"{stats.rescans} updated")
+        if stats.out_of_assignment:
+            parts.append(f"{stats.out_of_assignment} stranger")
         if stats.unknown_moons:
-            msg += f"\n\nWarning: {len(stats.unknown_moons)} unknown moon ID(s) — these were saved but couldn't be located in the SDE."
-        QMessageBox.information(self, "Scan saved", msg)
+            parts.append(f"\u26a0 {len(stats.unknown_moons)} unknown moon id(s)")
+        summary = ", ".join(parts) if parts else "no changes"
+        self.statusBar().showMessage(f"Scan saved: {summary}", 5000)
 
     def _open_export_dialog(self) -> None:
         ExportDialog(self.user_db, self).exec()
